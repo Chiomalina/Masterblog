@@ -1,0 +1,22 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="container mt-5">
+  <h1 class="mb-4">Add New Blog Post</h1>
+  <form method="POST" action="{{ url_for('add') }}">
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" class="form-control" id="title" name="title" placeholder="Enter title" required>
+    </div>
+    <div class="mb-3">
+      <label for="author" class="form-label">Author</label>
+      <input type="text" class="form-control" id="author" name="author" placeholder="Your name" required>
+    </div>
+    <div class="mb-3">
+      <label for="content" class="form-label">Content</label>
+      <textarea class="form-control" id="content" name="content" rows="7" placeholder="Write your post here..." required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Publish</button>
+  </form>
+</div>
+{% endblock %}
