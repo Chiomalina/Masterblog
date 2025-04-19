@@ -80,6 +80,21 @@ def add():
 	# Display the blank form if it's a GET request
 	return(render_template("add.html"))
 
+@app.route("/delete/<int:post_id>")
+def delete(post_id):
+	# 1. Load existing posts
+	posts = load_posts()
+
+	# 2. Filter out the post with the matching id.
+	# This is another logic for deleting the post with post_id instead of using the delete method
+	posts = [post for post in posts if post.get("id") != post_id]
+
+	# 3. Save the updated list back to JSON
+	save_posts(posts)
+
+	# 4. Redirect back to the index page
+	return redirect(url_for("index"))
+
 
 
 

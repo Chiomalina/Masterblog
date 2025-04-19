@@ -12,10 +12,15 @@
     {# Loop over each post in the posts list #}
 {% if posts %}
     {% for post in posts %}
-    <div class="post">
+    <div>
+      <div>
         <h2>Post Title: {{ post.title }}</h2>
+        <botton><a href="{{ url_for('delete', post_id=post.id) }}">Delete</a></botton>
+      </div>
+      <div>
         <p><em>Written By ...{{ post.author }} on {{ post.created }}</em></p>
         <p>Post content {{ post.content }}</p>
+      </div>
     </div>
     {% endfor %}
 {% else %}
