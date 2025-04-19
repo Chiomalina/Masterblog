@@ -4,27 +4,31 @@
     "title": "Half a yellow Sun",
     "author": "Chimamanda Adichie",
     "content": "The story of biafrans",
-    "created": "2025-04-19 04:01:43.106274"
+    "created": "2025-04-19 04:01:43.106274",
+    "likes": 2
   },
   {
     "id": 4,
     "title": "First Post",
     "author": "John Doe",
     "content": "This is my first post by default.",
-    "created": "2025-04-19 05:44:12.835601"
+    "created": "2025-04-19 05:44:12.835601",
+    "likes": 1
   },
   {
     "id": 5,
     "title": "Life of a Baker",
     "author": "Chinny Confectionery",
     "content": "Baking has never been more fun",
-    "created": "2025-04-19 07:00:31.770950"
+    "created": "2025-04-19 07:00:31.770950",
+    "likes": 5
   },
   {
     "id": 6,
     "title": "Becoming",
     "author": "Michelle Obama",
     "content": "The life journey of the former first lady of Nigeria.",
-    "created": "2025-04-19 07:04:51.438731"
+    "created": "2025-04-19 07:04:51.438731",
+    "likes": 3
   }
 ]

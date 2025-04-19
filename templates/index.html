@@ -18,7 +18,9 @@
         <p><em>Date: {{ post.created }}</em></p><br>
         <p><em>Content: {{ post.content }}<em></p><br>
         <a href="{{ url_for('update', post_id=post.id) }}" class="btn btn-primary">Update</a>
-        <a href="{{ url_for('delete', post_id=post.id) }}" class="btn btn-secondary">Delete</a>
+        <a href="{{ url_for('delete', post_id=post.id) }}" class="btn btn-primary btn-sm">Delete</a>
+        <!--  Like button      <!-->
+        <a href="{{ url_for('like', post_id=post.id) }}" class="btn btn-primary btn-sm">Like ({{ post.likes or 0 }})</a>
       </div>
     {% endfor %}
   {% else %}
