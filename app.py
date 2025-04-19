@@ -1,25 +1,41 @@
 import json
+import os
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime
 import uuid
 
 app = Flask(__name__)
 
-blog_posts = []
+
+DATA_FILE = os.path.join(app.root_path, "posts.json")
+
+def load_posts():
+	"""Return a list of posts (empty if file doesn't exist)."""
+	if not os.path.exists(DATA_FILE):
+		return []
+	with open(DATA_FILE, "r", encoding="utf-8") as fileobject:
+		return json.load(fileobject)
+
+def save_posts(posts):
+	"""Overwrite posts.json with the given list."""
+	with open(DATA_FILE, "w", encoding="utf-8") as fileobject:
+		# default=str is used to ensure datetime is JSON-serializable if we choose to keep the UTC timestamps
+		json.dump(posts, fileobject, indent=2, default=str)
 
 
 @app.route("/")
-def hello_world():
-	return "Hello, World!"
+def home():
+	return redirect(url_for("index"))
+
 
 @app.route("/index")
 def index():
-	# 1. Open and load the JSON file
-	with open("posts.json", "r", encoding="utf-8") as fileobject:
-		loaded_post = json.load(fileobject)
+	# 1. Retrieve data from load_posts()
+	posts = load_posts()
+	created = datetime.now()
 
 	# 2. Pass the list of posts into the template
-	return render_template("index.html", posts=loaded_post)
+	return render_template("index.html", posts=posts, date=created)
 
 
 
@@ -27,22 +43,36 @@ def index():
 @app.route("/add", methods=["GET", "POST"])
 def add():
 	if request.method == "POST":
-		# 1. pull values out of the form
+		# 1. Load up the existing posts
+		posts = load_posts()
+		print("Loaded posts:", posts)
+
+		# 2. Compute the next integer ID
+		#    We guard with default=0 so max([]) -> 0
+		max_id = max(
+			(post.get("id") for post in posts if isinstance(post.get("id"), int)),
+			default=0
+		)
+		next_id = max_id + 1
+
+		# 3. pull values out of the form
 		title = request.form.get("title", None)
 		author = request.form.get("author", None)
 		content = request.form.get("content", None)
+		created = request.form.get("created", None)
 
-		# 2. Assemble a new post object (additional functionality: timestamp added.)
+		# 4. Assemble a new post object, now with an integer ID (additional functionality: timestamp added.)
 		new_post = {
-			"id": str(uuid.uuid4()),
+			"id": next_id,
 			"title": title,
 			"author": author,
 			"content": content,
-			"created": datetime.utcnow()
+			"created": datetime.now()
 		}
 
-		# 3. Save it by appending it to empty blog_post above
-		blog_posts.append(new_post)
+		# 5. Save it by appending it to empty blog_post above
+		posts.append(new_post)
+		save_posts(posts)
 
 		# 4. Go back to home so users can see the updated list
 		return redirect(url_for("index"))
