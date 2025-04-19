@@ -2,7 +2,7 @@ import json
 import os
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime
-import uuid
+
 
 app = Flask(__name__)
 
@@ -16,11 +16,13 @@ def load_posts():
 	with open(DATA_FILE, "r", encoding="utf-8") as fileobject:
 		return json.load(fileobject)
 
+
 def save_posts(posts):
 	"""Overwrite posts.json with the given list."""
 	with open(DATA_FILE, "w", encoding="utf-8") as fileobject:
 		# default=str is used to ensure datetime is JSON-serializable if we choose to keep the UTC timestamps
 		json.dump(posts, fileobject, indent=2, default=str)
+
 
 def fetch_post_by_id(post_id):
 	"""
@@ -29,7 +31,6 @@ def fetch_post_by_id(post_id):
 	"""
 	posts = load_posts()
 	return next((p for p in posts if p.get('id') == post_id), None)
-
 
 
 @app.route("/")
@@ -45,8 +46,6 @@ def index():
 
 	# 2. Pass the list of posts into the template
 	return render_template("index.html", posts=posts, date=created)
-
-
 
 
 @app.route("/add", methods=["GET", "POST"])
@@ -89,6 +88,7 @@ def add():
 	# Display the blank form if it's a GET request
 	return(render_template("add.html"))
 
+
 @app.route("/delete/<int:post_id>")
 def delete(post_id):
 	# 1. Load existing posts
@@ -103,6 +103,7 @@ def delete(post_id):
 
 	# 4. Redirect back to the index page
 	return redirect(url_for("index"))
+
 
 @app.route("/update/<int:post_id>", methods=["GET", "POST"])
 def update(post_id):
@@ -128,10 +129,6 @@ def update(post_id):
 
 	# GET: render the pre-populated form
 	return render_template('update.html', post=post)
-
-
-
-
 
 
 if __name__=="__main__":
