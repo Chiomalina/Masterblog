@@ -22,6 +22,15 @@ def save_posts(posts):
 		# default=str is used to ensure datetime is JSON-serializable if we choose to keep the UTC timestamps
 		json.dump(posts, fileobject, indent=2, default=str)
 
+def fetch_post_by_id(post_id):
+	"""
+	Load all posts and return the one whose integer 'id' matches post_id.
+	Returns None if no such post exists.
+	"""
+	posts = load_posts()
+	return next((p for p in posts if p.get('id') == post_id), None)
+
+
 
 @app.route("/")
 def home():
@@ -94,6 +103,32 @@ def delete(post_id):
 
 	# 4. Redirect back to the index page
 	return redirect(url_for("index"))
+
+@app.route("/update/<int:post_id>", methods=["GET", "POST"])
+def update(post_id):
+	# 1. Load the full list of posts
+	posts = load_posts()
+
+	# 2. Find the post in that list
+	post = next((p for p in posts if p.get("id") == post_id), None)
+	if post is None:
+		return "Post not found", 404
+
+	if request.method == 'POST':
+		# 3. Update its fields
+		# Update fields from the form (fall back to existing values)
+		post['title'] = request.form.get('title', post['title'])
+		post['author'] = request.form.get('author', post['author'])
+		post['content'] = request.form.get('content', post['content'])
+
+		# 4. Save the update list back to disk
+		save_posts(posts)
+
+		return redirect(url_for('index'))
+
+	# GET: render the pre-populated form
+	return render_template('update.html', post=post)
+
 
 
 

@@ -1,31 +1,27 @@
+<!-- templates/index.html -->
 {% extends "base.html" %}
 
-<title>{% block title %}Home --My Blog{% endblock %}</title>
+{% block title %}Home – My Blog{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="post">
     <h1>Welcome to My Flask Blog!</h1>
-    <!-- Add link to /add -->
     <a href="{{ url_for('add') }}" class="btn btn-success">Add New Post</a>
   </div>
 
-    {# Loop over each post in the posts list #}
-{% if posts %}
+  {% if posts %}
     {% for post in posts %}
-    <div>
-      <div>
-        <h2>Post Title: {{ post.title }}</h2>
-        <botton><a href="{{ url_for('delete', post_id=post.id) }}">Delete</a></botton>
+      <div class="post">
+        <h2>{{ post.title }}</h2>
+        <p><em>Post id #{{ post.id }}</em></p><br>
+        <p><em>Author: {{ post.author }}</em></p><br>
+        <p><em>Date: {{ post.created }}</em></p><br>
+        <p><em>Content: {{ post.content }}<em></p><br>
+        <a href="{{ url_for('update', post_id=post.id) }}" class="btn btn-primary">Update</a>
+        <a href="{{ url_for('delete', post_id=post.id) }}" class="btn btn-secondary">Delete</a>
       </div>
-      <div>
-        <p><em>Written By ...{{ post.author }} on {{ post.created }}</em></p>
-        <p>Post content {{ post.content }}</p>
-      </div>
-    </div>
     {% endfor %}
-{% else %}
-    <p>No posts found. <a href="{{url_for('add') }}">Add your first post</a>!</p>
-{% endif %}
+  {% else %}
+    <p>No posts found. <a href="{{ url_for('add') }}">Add your first post</a>!</p>
+  {% endif %}
 {% endblock %}
-
-

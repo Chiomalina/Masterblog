@@ -10,7 +10,21 @@
     "id": 4,
     "title": "First Post",
     "author": "John Doe",
-    "content": "This is my first post.",
+    "content": "This is my first post by default.",
     "created": "2025-04-19 05:44:12.835601"
+  },
+  {
+    "id": 5,
+    "title": "Life of a Baker",
+    "author": "Chinny Confectionery",
+    "content": "Baking has never been more fun",
+    "created": "2025-04-19 07:00:31.770950"
+  },
+  {
+    "id": 6,
+    "title": "Becoming",
+    "author": "Michelle Obama",
+    "content": "The life journey of the former first lady of Nigeria.",
+    "created": "2025-04-19 07:04:51.438731"
   }
 ]
