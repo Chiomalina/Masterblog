@@ -1,146 +1,190 @@
+"""
+A simple Flask blog application that allows users to create, update,
+delete, and like posts stored in a JSON file.
+"""
+
 import json
 import os
-from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime
+
+from flask import (Flask, abort, redirect, render_template,
+                   request, url_for)
 
 
 app = Flask(__name__)
 
-
 DATA_FILE = os.path.join(app.root_path, "posts.json")
 
+
 def load_posts():
-	"""Return a list of posts (empty if file doesn't exist)."""
-	if not os.path.exists(DATA_FILE):
-		return []
-	with open(DATA_FILE, "r", encoding="utf-8") as fileobject:
-		return json.load(fileobject)
+    """
+    Load and return the list of posts from the JSON data file.
+
+    Returns:
+        list: A list of post dictionaries, or an empty list if the file
+        does not exist.
+    """
+    if not os.path.exists(DATA_FILE):
+        return []
+
+    with open(DATA_FILE, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 def save_posts(posts):
-	"""Overwrite posts.json with the given list."""
-	with open(DATA_FILE, "w", encoding="utf-8") as fileobject:
-		# default=str is used to ensure datetime is JSON-serializable if we choose to keep the UTC timestamps
-		json.dump(posts, fileobject, indent=2, default=str)
+    """
+    Save the list of posts to the JSON data file, overwriting existing data.
+
+    Args:
+        posts (list): A list of post dictionaries to write.
+    """
+    with open(DATA_FILE, "w", encoding="utf-8") as file:
+        json.dump(posts, file, indent=2, default=str)
 
 
 def fetch_post_by_id(post_id):
-	"""
-	Load all posts and return the one whose integer 'id' matches post_id.
-	Returns None if no such post exists.
-	"""
-	posts = load_posts()
-	return next((p for p in posts if p.get('id') == post_id), None)
+    """
+    Retrieve a single post by its ID.
+
+    Args:
+        post_id (int): The unique identifier of the post.
+
+    Returns:
+        dict or None: The matching post dictionary, or None if not found.
+    """
+    return next(
+        (post for post in load_posts() if post.get("id") == post_id),
+        None
+    )
 
 
 @app.route("/")
 def home():
-	return redirect(url_for("index"))
+    """
+    Redirect the root URL to the main index page.
+    """
+    return redirect(url_for("index"))
 
 
 @app.route("/index")
 def index():
-	# 1. Retrieve data from load_posts()
-	posts = load_posts()
-	created = datetime.now()
+    """
+    Render the index page with all posts and the current timestamp.
 
-	# 2. Pass the list of posts into the template
-	return render_template("index.html", posts=posts, date=created)
+    Returns:
+        Response: Rendered template for the index page.
+    """
+    posts = load_posts()
+    current_time = datetime.now()
+
+    return render_template("index.html", posts=posts, date=current_time)
 
 
 @app.route("/add", methods=["GET", "POST"])
 def add():
-	if request.method == "POST":
-		# 1. Load up the existing posts
-		posts = load_posts()
-		print("Loaded posts:", posts)
+    """
+    Handle adding a new blog post via a form.
 
-		# 2. Compute the next integer ID
-		#    We guard with default=0 so max([]) -> 0
-		max_id = max(
-			(post.get("id") for post in posts if isinstance(post.get("id"), int)),
-			default=0
-		)
-		next_id = max_id + 1
+    GET:
+        Render the blank form for creating a post.
+    POST:
+        Create a new post from form data, save it, and redirect to index.
 
-		# 3. pull values out of the form
-		title = request.form.get("title", None)
-		author = request.form.get("author", None)
-		content = request.form.get("content", None)
-		created = request.form.get("created", None)
+    Returns:
+        Response: Template render or redirect response.
+    """
+    if request.method == "POST":
+        posts = load_posts()
+        max_id = max(
+            (post.get("id") for post in posts if isinstance(post.get("id"), int)),
+            default=0
+        )
+        new_post = {
+            "id": max_id + 1,
+            "title": request.form.get("title"),
+            "author": request.form.get("author"),
+            "content": request.form.get("content"),
+            "created": datetime.now()
+        }
+        posts.append(new_post)
+        save_posts(posts)
 
-		# 4. Assemble a new post object, now with an integer ID (additional functionality: timestamp added.)
-		new_post = {
-			"id": next_id,
-			"title": title,
-			"author": author,
-			"content": content,
-			"created": datetime.now()
-		}
+        return redirect(url_for("index"))
 
-		# 5. Save it by appending it to empty blog_post above
-		posts.append(new_post)
-		save_posts(posts)
-
-		# 4. Go back to home so users can see the updated list
-		return redirect(url_for("index"))
-
-	# Display the blank form if it's a GET request
-	return(render_template("add.html"))
+    return render_template("add.html")
 
 
 @app.route("/delete/<int:post_id>")
 def delete(post_id):
-	# 1. Load existing posts
-	posts = load_posts()
+    """
+    Delete a post by its ID and update the JSON file.
 
-	# 2. Filter out the post with the matching id.
-	# This is another logic for deleting the post with post_id instead of using the delete method
-	posts = [post for post in posts if post.get("id") != post_id]
+    Args:
+        post_id (int): The ID of the post to remove.
 
-	# 3. Save the updated list back to JSON
-	save_posts(posts)
+    Returns:
+        Response: Redirect response to the index page.
+    """
+    posts = load_posts()
+    posts = [post for post in posts if post.get("id") != post_id]
+    save_posts(posts)
 
-	# 4. Redirect back to the index page
-	return redirect(url_for("index"))
+    return redirect(url_for("index"))
 
 
 @app.route("/update/<int:post_id>", methods=["GET", "POST"])
 def update(post_id):
-	# 1. Load the full list of posts
-	posts = load_posts()
+    """
+    Update an existing post's details via a form.
 
-	# 2. Find the post in that list
-	post = next((p for p in posts if p.get("id") == post_id), None)
-	if post is None:
-		return "Post not found", 404
+    GET:
+        Render the form pre-populated with the post's data.
+    POST:
+        Apply changes from form data, save updates, and redirect to index.
 
-	if request.method == 'POST':
-		# 3. Update its fields
-		# Update fields from the form (fall back to existing values)
-		post['title'] = request.form.get('title', post['title'])
-		post['author'] = request.form.get('author', post['author'])
-		post['content'] = request.form.get('content', post['content'])
+    Args:
+        post_id (int): The ID of the post to update.
 
-		# 4. Save the update list back to disk
-		save_posts(posts)
+    Returns:
+        Response: Template render, redirect, or 404 if not found.
+    """
+    posts = load_posts()
+    post = next((p for p in posts if p.get("id") == post_id), None)
+    if post is None:
+        abort(404)
 
-		return redirect(url_for('index'))
+    if request.method == "POST":
+        post["title"] = request.form.get("title", post["title"])
+        post["author"] = request.form.get("author", post["author"])
+        post["content"] = request.form.get("content", post["content"])
+        save_posts(posts)
 
-	# GET: render the pre-populated form
-	return render_template('update.html', post=post)
+        return redirect(url_for("index"))
 
-@app.route('/like/<int:post_id>')
+    return render_template("update.html", post=post)
+
+
+@app.route("/like/<int:post_id>", methods=["GET", "POST"])
 def like(post_id):
-	posts = load_posts()
-	for post in posts:
-		if post.get('id') == post_id:
-			post['likes'] = post.get('likes', 0) + 1
-			break
-	save_posts(posts)
-	return redirect(url_for('index'))
+    """
+    Increment the like-counter for a post and show confirmation.
+
+    Args:
+        post_id (int): The ID of the post being liked.
+
+    Returns:
+        Response: Rendered 'like.html' template or 404 if not found.
+    """
+    posts = load_posts()
+    post = next((p for p in posts if p.get("id") == post_id), None)
+    if post is None:
+        abort(404)
+
+    post["likes"] = post.get("likes", 0) + 1
+    save_posts(posts)
+
+    return render_template("like.html", post=post)
 
 
-
-if __name__=="__main__":
-	app.run(host="0.0.0.0", port=5001, debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5001, debug=True)
